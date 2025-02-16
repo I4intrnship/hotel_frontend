@@ -1,38 +1,43 @@
-// src/App.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import DashboardPage from './components/Home/DashboardPage';
-import RoomManagementPage from './components/Room/RoomManagementPage';
-import LoginPage from './components/Authentication/login';  // Assuming you have a login page
-import Register from './components/Authentication/register';  // Assuming you have a registration page
-import MainLayout from './components/Layout/MainLayout';  // Layout for protected routes
-
-// Utility function to check if the user is authenticated
-const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null;
-};
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./components/Authentication/AuthContext";
+import LoginPage from "./components/Authentication/login";
+import RegisterPage from "./components/Authentication/register";
+import DashboardPage from "./components/Home/DashboardPage";
+import ProtectedRoute from "./components/Authentication/ProtectedRoute";
+import ReservationPage from "./components/Home/ReservationPage";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<Register />} />
+      <AuthProvider>
+        <Routes>
+          {/* 🔓 Public Routes (Accessible to Everyone) */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated() ? <MainLayout><DashboardPage /></MainLayout> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/manage-rooms"
-          element={isAuthenticated() ? <MainLayout><RoomManagementPage /></MainLayout> : <Navigate to="/login" />}
-        />
+          {/* 🔐 Protected Routes (Require Authentication) */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch-all route - redirect to login if not authenticated */}
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
+          <Route
+            path="/reservation"
+            element={
+              <ProtectedRoute>
+                <ReservationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 🚨 Redirect Unknown Routes to Login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

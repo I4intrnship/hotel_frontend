@@ -1,42 +1,56 @@
-// // src/context/AuthContext.js
-// import React, { createContext, useContext, useState } from 'react';
-// import axios from 'axios';
+import { createContext, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-// const AuthContext = createContext();
+export const AuthContext = createContext();
 
-// export const AuthProvider =  ({ children }) => {
-//     const [token, setToken] = useState(localStorage.getItem('token'));
+export const AuthProvider = ({ children }) => {
+  const [auth, setAuth] = useState({
+    token: localStorage.getItem("token") || null,
+    role: localStorage.getItem("role") || null,
+  });
 
-//     const login = async (username, password) =>  {
-//        // call backend
-//         const response = await axios.post("http://localhost:5000/auth/login", {
-//             username: username,
-//             password: password,
-//         });
+  const [hasNavigated, setHasNavigated] = useState(false); // 🛑 Prevent multiple navigations
+  const navigate = useNavigate();
+  const location = useLocation();
 
-//         console.log(response.data.accessToken);
+  useEffect(() => {
+    console.log("🟢 Auth State Updated:", auth);
+    console.log("📌 Current Path:", location.pathname);
 
-//         const newToken = response.data.accessToken;
-        
-       
-//          setToken(newToken); 
+    if (auth.token && auth.role && !hasNavigated) {
+      const targetPath = auth.role === "admin" ? "/admin-dashboard" : "/dashboard";
 
-//         localStorage.setItem('token', newToken);  // Store token
-//     };
+      if (location.pathname !== targetPath) {
+        console.log("🚀 Redirecting to:", targetPath);
+        setHasNavigated(true); // 🛑 Prevent multiple redirects
+        navigate(targetPath, { replace: true });
+      }
+    }
+  }, [auth.token, auth.role, navigate, location.pathname, hasNavigated]);
 
-//     const logout = () => {
-//         setToken(null);
-//         localStorage.removeItem('token'); // Remove the token from localStorage
-//     };
+  const login = (token, role) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+    setAuth({ token, role });
 
-//     // Check if the user is authenticated
-//     const isAuthenticated = Boolean(token);
+    const targetPath = role === "admin" ? "/admin-dashboard" : "/dashboard";
 
-//     return (
-//         <AuthContext.Provider value={{ token, login, logout, isAuthenticated }}>
-//             {children}
-//         </AuthContext.Provider>
-//     );
-// };
+    console.log("✅ Login successful. Redirecting to:", targetPath);
+    navigate(targetPath, { replace: true });
+  };
 
-// export const useAuth = () => useContext(AuthContext);
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    setAuth({ token: null, role: null });
+
+    console.log("🚪 Logged out. Redirecting to login.");
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <AuthContext.Provider value={{ auth, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

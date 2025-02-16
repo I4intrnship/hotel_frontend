@@ -1,14 +1,17 @@
-// // src/components/ProtectedRoute.js
-// import { Navigate, Outlet } from 'react-router-dom';
-// import { useAuth } from './AuthContext.jsx';
+import { Navigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "./AuthContext";
+import MainLayout from "../Layout/MainLayout";
 
-// const ProtectedRoute = () => {
-//     const { token } = useAuth(); // Use the token from AuthContext
+const ProtectedRoute = ({ children }) => {
+  const { auth } = useContext(AuthContext);
 
-//     // Check if the token exists to determine if the user is authenticated
-//     const isAuthenticated = Boolean(token);
+  if (!auth.token) {
+    console.log("🔴 User is not authenticated. Redirecting to /login");
+    return <Navigate to="/login" replace />;
+  }
 
-//     return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
-// };
+  return <MainLayout>{children}</MainLayout>;
+};
 
-// export default ProtectedRoute;
+export default ProtectedRoute;

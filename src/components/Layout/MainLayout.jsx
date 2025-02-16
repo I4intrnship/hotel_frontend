@@ -1,8 +1,8 @@
 // src/components/Layout/MainLayout.jsx
 import React from 'react';
-import Sidebar from '../Sidebar';  // Ensure these components exist in the appropriate paths
-import Header from '../Header';
-import Footer from '../Footer';
+import Sidebar from './Sidebar';  // Ensure these components exist in the appropriate paths
+import Header from './Header';
+import Footer from './Footer';
 
 const MainLayout = ({ children }) => (
   <div>
